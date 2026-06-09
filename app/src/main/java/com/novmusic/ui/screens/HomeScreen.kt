@@ -204,7 +204,21 @@ fun HomeScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.MusicNote, null, tint = OnSurfaceVariantDark.copy(alpha = 0.4f), modifier = Modifier.size(48.dp))
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("Треки загружаются...", color = OnSurfaceVariantDark.copy(alpha = 0.6f), fontSize = 13.sp)
+                            if (uiState.error != null) {
+                                Text(
+                                    text = uiState.error,
+                                    color = OnSurfaceVariantDark.copy(alpha = 0.7f),
+                                    fontSize = 12.sp,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 24.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                TextButton(onClick = { musicViewModel.loadTrendingTracks() }) {
+                                    Text("Повторить", color = PrimaryPurple, fontSize = 13.sp)
+                                }
+                            } else {
+                                Text("Нет треков", color = OnSurfaceVariantDark.copy(alpha = 0.6f), fontSize = 13.sp)
+                            }
                         }
                     }
                 } else if (!uiState.isTrendingLoading) {
