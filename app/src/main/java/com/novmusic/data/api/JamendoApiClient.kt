@@ -1,90 +1,119 @@
 package com.novmusic.data.api
 
-import com.novmusic.data.model.JamendoTrack
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONObject
-import javax.inject.Inject
-import javax.inject.Singleton
+  import com.novmusic.data.model.JamendoTrack
+  import kotlinx.coroutines.Dispatchers
+  import kotlinx.coroutines.withContext
+  import okhttp3.OkHttpClient
+  import okhttp3.Request
+  import org.json.JSONObject
+  import java.net.SocketTimeoutException
+  import java.net.UnknownHostException
+  import javax.inject.Inject
+  import javax.inject.Singleton
+  import javax.net.ssl.SSLException
 
-private const val CLIENT_ID = "2956fe68"
-private const val BASE_URL = "https://api.jamendo.com/v3.0"
+  private const val CLIENT_ID = "2956fe68"
+  private const val BASE_URL = "https://api.jamendo.com/v3.0"
 
-@Singleton
-class JamendoApiClient @Inject constructor(
-    private val okHttpClient: OkHttpClient
-) {
+  @Singleton
+  class JamendoApiClient @Inject constructor(
+      private val okHttpClient: OkHttpClient
+  ) {
 
-    suspend fun searchTracks(query: String, limit: Int = 30, offset: Int = 0): List<JamendoTrack> {
-        val url = "$BASE_URL/tracks/" +
-            "?client_id=$CLIENT_ID" +
-            "&format=json" +
-            "&search=${query.encodeUrl()}" +
-            "&limit=$limit" +
-            "&offset=$offset" +
-            "&audioformat=mp31" +
-            "&order=relevance_desc"
-        return fetchTracks(url)
-    }
+      suspend fun searchTracks(query: String, limit: Int = 30, offset: Int = 0): List<JamendoTrack> {
+          val url = "$BASE_URL/tracks/" +
+              "?client_id=$CLIENT_ID" +
+              "&format=json" +
+              "&search=${query.encodeUrl()}" +
+              "&limit=$limit" +
+              "&offset=$offset" +
+              "&audioformat=mp31" +
+              "&order=relevance_desc"
+          return fetchTracks(url)
+      }
 
-    suspend fun getTrendingTracks(limit: Int = 50): List<JamendoTrack> {
-        val url = "$BASE_URL/tracks/" +
-            "?client_id=$CLIENT_ID" +
-            "&format=json" +
-            "&limit=$limit" +
-            "&audioformat=mp31" +
-            "&order=popularity_total"
-        return fetchTracks(url)
-    }
+      suspend fun getTrendingTracks(limit: Int = 50): List<JamendoTrack> {
+          val url = "$BASE_URL/tracks/" +
+              "?client_id=$CLIENT_ID" +
+              "&format=json" +
+              "&limit=$limit" +
+              "&audioformat=mp31" +
+              "&order=popularity_total"
+          return fetchTracks(url)
+      }
 
-    private suspend fun fetchTracks(url: String): List<JamendoTrack> = withContext(Dispatchers.IO) {
-        val request = Request.Builder()
-            .url(url)
-            .addHeader("Accept", "application/json")
-            .build()
+      private suspend fun fetchTracks(url: String): List<JamendoTrack> = withContext(Dispatchers.IO) {
+          try {
+              val request = Request.Builder()
+                  .url(url)
+                  .addHeader("Accept", "application/json")
+                  .addHeader("User-Agent", "NovMusic/1.0 Android")
+                  .build()
 
-        val response = okHttpClient.newCall(request).execute()
-        if (!response.isSuccessful) {
-            throw Exception("HTTP ${response.code}")
-        }
+              val response = okHttpClient.newCall(request).execute()
+              val body = response.body?.string()
 
-        val body = response.body?.string()
-            ?: throw Exception("Пустой ответ от сервера")
+              if (!response.isSuccessful) {
+                  val preview = body?.take(200) ?: "(нет тела)"
+                  throw Exception("HTTP ${response.code} ${response.message} — $preview")
+              }
 
-        parseTracksFromJson(body)
-    }
+              if (body.isNullOrBlank()) {
+                  throw Exception("Сервер вернул пустой ответ (HTTP ${response.code})")
+              }
 
-    private fun parseTracksFromJson(body: String): List<JamendoTrack> {
-        val root = JSONObject(body)
-        val results = root.optJSONArray("results") ?: return emptyList()
-        val tracks = mutableListOf<JamendoTrack>()
-        for (i in 0 until results.length()) {
-            val obj = results.optJSONObject(i) ?: continue
-            val audio = obj.optString("audio", "")
-            val audioDownload = obj.optString("audiodownload", "")
-            if (audio.isBlank() && audioDownload.isBlank()) continue
-            tracks.add(
-                JamendoTrack(
-                    id = obj.optString("id", ""),
-                    name = obj.optString("name", ""),
-                    duration = obj.optInt("duration", 0),
-                    artistName = obj.optString("artist_name", ""),
-                    albumName = obj.optString("album_name", ""),
-                    albumImage = obj.optString("album_image", "").ifBlank { null },
-                    audio = audio.ifBlank { null },
-                    audiodownload = audioDownload.ifBlank { null },
-                    image = obj.optString("image", "").ifBlank { null },
-                    shareUrl = obj.optString("shareurl", ""),
-                    genre = obj.optString("genre", "").ifBlank { null },
-                    listens = obj.optLong("listens", 0),
-                    likesCount = obj.optLong("likes_count", 0)
-                )
-            )
-        }
-        return tracks
-    }
+              if (!body.trimStart().startsWith('{')) {
+                  throw Exception("Не JSON ответ: ${body.take(120)}")
+              }
 
-    private fun String.encodeUrl(): String = java.net.URLEncoder.encode(this, "UTF-8")
-}
+              parseTracksFromJson(body)
+          } catch (e: UnknownHostException) {
+              throw Exception("DNS: не удалось найти api.jamendo.com — нет интернета? (${e.message})")
+          } catch (e: SocketTimeoutException) {
+              throw Exception("Таймаут: сервер не ответил за 15 сек (${e.message})")
+          } catch (e: SSLException) {
+              throw Exception("SSL/TLS ошибка: ${e.message}")
+          } catch (e: java.io.IOException) {
+              throw Exception("IOException (${e.javaClass.simpleName}): ${e.message}")
+          }
+      }
+
+      private fun parseTracksFromJson(body: String): List<JamendoTrack> {
+          val root = JSONObject(body)
+          val headers = root.optJSONObject("headers")
+          val status = headers?.optString("status", "success") ?: "success"
+          val errorMessage = headers?.optString("error_message", "") ?: ""
+          if (status != "success") {
+              throw Exception("Jamendo API: $errorMessage (status=$status)")
+          }
+          val results = root.optJSONArray("results") ?: return emptyList()
+          val tracks = mutableListOf<JamendoTrack>()
+          for (i in 0 until results.length()) {
+              val obj = results.optJSONObject(i) ?: continue
+              val audio = obj.optString("audio", "")
+              val audioDownload = obj.optString("audiodownload", "")
+              if (audio.isBlank() && audioDownload.isBlank()) continue
+              tracks.add(
+                  JamendoTrack(
+                      id = obj.optString("id", ""),
+                      name = obj.optString("name", ""),
+                      duration = obj.optInt("duration", 0),
+                      artistName = obj.optString("artist_name", ""),
+                      albumName = obj.optString("album_name", ""),
+                      albumImage = obj.optString("album_image", "").ifBlank { null },
+                      audio = audio.ifBlank { null },
+                      audiodownload = audioDownload.ifBlank { null },
+                      image = obj.optString("image", "").ifBlank { null },
+                      shareUrl = obj.optString("shareurl", ""),
+                      genre = obj.optString("genre", "").ifBlank { null },
+                      listens = obj.optLong("listens", 0),
+                      likesCount = obj.optLong("likes_count", 0)
+                  )
+              )
+          }
+          return tracks
+      }
+
+      private fun String.encodeUrl(): String = java.net.URLEncoder.encode(this, "UTF-8")
+  }
+  
