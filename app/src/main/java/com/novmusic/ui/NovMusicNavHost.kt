@@ -22,7 +22,6 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,7 +35,6 @@ import com.novmusic.ui.screens.HomeScreen
 import com.novmusic.ui.screens.LoginScreen
 import com.novmusic.ui.screens.SavedTracksScreen
 import com.novmusic.ui.screens.SearchScreen
-import com.novmusic.ui.screens.VkAuthWebViewScreen
 import com.novmusic.ui.theme.BackgroundDark
 import com.novmusic.ui.theme.PrimaryPurple
 import com.novmusic.ui.theme.SurfaceDark
@@ -46,7 +44,6 @@ import com.novmusic.ui.viewmodel.MusicViewModel
 
 object Routes {
     const val LOGIN = "login"
-    const val VK_AUTH = "vk_auth"
     const val HOME = "home"
     const val SEARCH = "search"
     const val SAVED = "saved"
@@ -106,7 +103,7 @@ fun NovMusicNavHost(
                         authViewModel = authViewModel,
                         onNavigateToRegister = {},
                         onNavigateToForgotPassword = {},
-                        onNavigateToVkAuth = { navController.navigate(Routes.VK_AUTH) },
+                        onNavigateToVkAuth = {},
                         onNavigateToHome = {
                             navController.navigate(Routes.HOME) {
                                 popUpTo(Routes.LOGIN) { inclusive = true }
@@ -114,30 +111,18 @@ fun NovMusicNavHost(
                         }
                     )
                 }
-                composable(Routes.VK_AUTH) {
-                    VkAuthWebViewScreen(
-                        authUrl = authViewModel.getVkAuthUrl(),
-                        onTokenReceived = { token, userId ->
-                            authViewModel.handleVkTokenReceived(token, userId)
-                            navController.navigate(Routes.HOME) {
-                                popUpTo(Routes.LOGIN) { inclusive = true }
-                            }
-                        },
-                        onBack = { navController.navigateUp() }
-                    )
-                }
                 composable(Routes.HOME) {
                     HomeScreen(
                         musicViewModel = musicViewModel,
                         authViewModel = authViewModel,
-                        onNavigateToVkAuth = { navController.navigate(Routes.VK_AUTH) }
+                        onNavigateToVkAuth = {}
                     )
                 }
                 composable(Routes.SEARCH) {
                     SearchScreen(
                         musicViewModel = musicViewModel,
                         authViewModel = authViewModel,
-                        onNavigateToVkAuth = { navController.navigate(Routes.VK_AUTH) }
+                        onNavigateToVkAuth = {}
                     )
                 }
                 composable(Routes.SAVED) {
