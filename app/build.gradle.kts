@@ -21,9 +21,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "SOUNDCLOUD_CLIENT_ID", "\"${project.findProperty("SOUNDCLOUD_CLIENT_ID") ?: ""}\"")
         buildConfigField("String", "VK_APP_ID", "\"${project.findProperty("VK_APP_ID") ?: ""}\"")
-        buildConfigField("String", "VK_REDIRECT_URI", "\"${project.findProperty("VK_REDIRECT_URI") ?: "https://oauth.vk.com/blank.html"}\"")
 
         manifestPlaceholders["VK_APP_ID"] = project.findProperty("VK_APP_ID") ?: ""
     }
