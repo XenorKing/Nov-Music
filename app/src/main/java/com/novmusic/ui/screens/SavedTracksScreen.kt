@@ -19,7 +19,7 @@ import com.novmusic.ui.theme.*
 import com.novmusic.ui.viewmodel.MusicViewModel
 
 @Composable
-fun SavedTracksScreen(musicViewModel: MusicViewModel) {
+fun SavedTracksScreen(musicViewModel: MusicViewModel, onOpenPlayer: () -> Unit = {}) {
     val uiState by musicViewModel.uiState.collectAsState()
     val playerState by musicViewModel.playerState.collectAsState()
 
@@ -118,11 +118,7 @@ fun SavedTracksScreen(musicViewModel: MusicViewModel) {
         }
 
         if (playerState.currentTrack != null) {
-            MiniPlayer(
-                playerState = playerState,
-                onPlayPause = { musicViewModel.togglePlayPause() },
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
+            MiniPlayer(playerState = playerState, onPlayPause = { musicViewModel.togglePlayPause() }, onOpenPlayer = onOpenPlayer, modifier = Modifier.align(Alignment.BottomCenter))
         }
 
         uiState.saveMessage?.let { msg ->
