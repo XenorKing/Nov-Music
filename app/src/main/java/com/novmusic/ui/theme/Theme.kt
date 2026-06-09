@@ -1,0 +1,78 @@
+package com.novmusic.ui.theme
+
+import android.app.Activity
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+
+val PrimaryPurple = Color(0xFF9B59F8)
+val PrimaryPurpleVariant = Color(0xFF7C3AED)
+val SecondaryPink = Color(0xFFEC4899)
+val BackgroundDark = Color(0xFF0D0D1A)
+val SurfaceDark = Color(0xFF1A1A2E)
+val SurfaceVariantDark = Color(0xFF252540)
+val OnSurfaceDark = Color(0xFFF0EEFF)
+val OnSurfaceVariantDark = Color(0xFFB0A8CC)
+
+val DarkColorScheme = darkColorScheme(
+    primary = PrimaryPurple,
+    onPrimary = Color.White,
+    primaryContainer = PrimaryPurpleVariant,
+    onPrimaryContainer = Color.White,
+    secondary = SecondaryPink,
+    onSecondary = Color.White,
+    background = BackgroundDark,
+    onBackground = OnSurfaceDark,
+    surface = SurfaceDark,
+    onSurface = OnSurfaceDark,
+    surfaceVariant = SurfaceVariantDark,
+    onSurfaceVariant = OnSurfaceVariantDark,
+    outline = Color(0xFF4A4A6A),
+    error = Color(0xFFFF6B6B)
+)
+
+val LightColorScheme = lightColorScheme(
+    primary = PrimaryPurpleVariant,
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFEDE7FF),
+    onPrimaryContainer = PrimaryPurpleVariant,
+    secondary = SecondaryPink,
+    onSecondary = Color.White,
+    background = Color(0xFFF8F5FF),
+    onBackground = Color(0xFF1A1A2E),
+    surface = Color.White,
+    onSurface = Color(0xFF1A1A2E),
+    surfaceVariant = Color(0xFFF0EEFF),
+    onSurfaceVariant = Color(0xFF4A4A6A),
+    error = Color(0xFFDC2626)
+)
+
+@Composable
+fun NovMusicTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}
