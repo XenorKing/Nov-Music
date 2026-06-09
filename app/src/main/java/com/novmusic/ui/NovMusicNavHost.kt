@@ -33,6 +33,7 @@ package com.novmusic.ui
   import androidx.navigation.compose.rememberNavController
   import com.novmusic.ui.screens.HomeScreen
   import com.novmusic.ui.screens.LoginScreen
+  import com.novmusic.ui.screens.NowPlayingScreen
   import com.novmusic.ui.screens.SavedTracksScreen
   import com.novmusic.ui.screens.SearchScreen
   import com.novmusic.ui.theme.BackgroundDark
@@ -45,6 +46,7 @@ package com.novmusic.ui
       const val HOME = "home"
       const val SEARCH = "search"
       const val SAVED = "saved"
+      const val NOW_PLAYING = "now_playing"
   }
 
   @Composable
@@ -78,15 +80,8 @@ package com.novmusic.ui
               }
           }
       ) { paddingValues ->
-          Box(
-              modifier = Modifier
-                  .fillMaxSize()
-                  .padding(paddingValues)
-          ) {
-              NavHost(
-                  navController = navController,
-                  startDestination = Routes.LOGIN
-              ) {
+          Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+              NavHost(navController = navController, startDestination = Routes.LOGIN) {
                   composable(Routes.LOGIN) {
                       LoginScreen(
                           onNavigateToHome = {
@@ -98,16 +93,27 @@ package com.novmusic.ui
                   }
                   composable(Routes.HOME) {
                       HomeScreen(
-                          musicViewModel = musicViewModel
+                          musicViewModel = musicViewModel,
+                          onOpenPlayer = { navController.navigate(Routes.NOW_PLAYING) }
                       )
                   }
                   composable(Routes.SEARCH) {
                       SearchScreen(
-                          musicViewModel = musicViewModel
+                          musicViewModel = musicViewModel,
+                          onOpenPlayer = { navController.navigate(Routes.NOW_PLAYING) }
                       )
                   }
                   composable(Routes.SAVED) {
-                      SavedTracksScreen(musicViewModel = musicViewModel)
+                      SavedTracksScreen(
+                          musicViewModel = musicViewModel,
+                          onOpenPlayer = { navController.navigate(Routes.NOW_PLAYING) }
+                      )
+                  }
+                  composable(Routes.NOW_PLAYING) {
+                      NowPlayingScreen(
+                          musicViewModel = musicViewModel,
+                          onBack = { navController.popBackStack() }
+                      )
                   }
               }
           }
@@ -115,67 +121,28 @@ package com.novmusic.ui
   }
 
   @Composable
-  fun NovMusicBottomBar(
-      currentRoute: String?,
-      onNavigate: (String) -> Unit
-  ) {
-      NavigationBar(
-          containerColor = SurfaceDark,
-          contentColor = PrimaryPurple
-      ) {
+  fun NovMusicBottomBar(currentRoute: String?, onNavigate: (String) -> Unit) {
+      NavigationBar(containerColor = SurfaceDark, contentColor = PrimaryPurple) {
           NavigationBarItem(
               selected = currentRoute == Routes.HOME,
               onClick = { onNavigate(Routes.HOME) },
-              icon = {
-                  Icon(
-                      imageVector = if (currentRoute == Routes.HOME) Icons.Filled.Home else Icons.Outlined.Home,
-                      contentDescription = "Главная"
-                  )
-              },
+              icon = { Icon(if (currentRoute == Routes.HOME) Icons.Filled.Home else Icons.Outlined.Home, "Главная") },
               label = { Text("Главная") },
-              colors = NavigationBarItemDefaults.colors(
-                  selectedIconColor = PrimaryPurple,
-                  selectedTextColor = PrimaryPurple,
-                  unselectedIconColor = Color(0xFF5A5A7A),
-                  unselectedTextColor = Color(0xFF5A5A7A),
-                  indicatorColor = Color(0xFF1E1E40)
-              )
+              colors = NavigationBarItemDefaults.colors(selectedIconColor = PrimaryPurple, selectedTextColor = PrimaryPurple, unselectedIconColor = Color(0xFF5A5A7A), unselectedTextColor = Color(0xFF5A5A7A), indicatorColor = Color(0xFF1E1E40))
           )
           NavigationBarItem(
               selected = currentRoute == Routes.SEARCH,
               onClick = { onNavigate(Routes.SEARCH) },
-              icon = {
-                  Icon(
-                      imageVector = if (currentRoute == Routes.SEARCH) Icons.Filled.Search else Icons.Outlined.Search,
-                      contentDescription = "Поиск"
-                  )
-              },
+              icon = { Icon(if (currentRoute == Routes.SEARCH) Icons.Filled.Search else Icons.Outlined.Search, "Поиск") },
               label = { Text("Поиск") },
-              colors = NavigationBarItemDefaults.colors(
-                  selectedIconColor = PrimaryPurple,
-                  selectedTextColor = PrimaryPurple,
-                  unselectedIconColor = Color(0xFF5A5A7A),
-                  unselectedTextColor = Color(0xFF5A5A7A),
-                  indicatorColor = Color(0xFF1E1E40)
-              )
+              colors = NavigationBarItemDefaults.colors(selectedIconColor = PrimaryPurple, selectedTextColor = PrimaryPurple, unselectedIconColor = Color(0xFF5A5A7A), unselectedTextColor = Color(0xFF5A5A7A), indicatorColor = Color(0xFF1E1E40))
           )
           NavigationBarItem(
               selected = currentRoute == Routes.SAVED,
               onClick = { onNavigate(Routes.SAVED) },
-              icon = {
-                  Icon(
-                      imageVector = if (currentRoute == Routes.SAVED) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                      contentDescription = "Избранное"
-                  )
-              },
+              icon = { Icon(if (currentRoute == Routes.SAVED) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder, "Избранное") },
               label = { Text("Избранное") },
-              colors = NavigationBarItemDefaults.colors(
-                  selectedIconColor = PrimaryPurple,
-                  selectedTextColor = PrimaryPurple,
-                  unselectedIconColor = Color(0xFF5A5A7A),
-                  unselectedTextColor = Color(0xFF5A5A7A),
-                  indicatorColor = Color(0xFF1E1E40)
-              )
+              colors = NavigationBarItemDefaults.colors(selectedIconColor = PrimaryPurple, selectedTextColor = PrimaryPurple, unselectedIconColor = Color(0xFF5A5A7A), unselectedTextColor = Color(0xFF5A5A7A), indicatorColor = Color(0xFF1E1E40))
           )
       }
   }
