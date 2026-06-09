@@ -1,5 +1,7 @@
 package com.novmusic.ui.screens
 
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,6 +34,7 @@ fun LoginScreen(
     onNavigateToVkAuth: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {
+    val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
     val authEvent by authViewModel.authEvent.collectAsState()
 
@@ -68,16 +72,13 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 36.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
                     .size(96.dp)
                     .background(
-                        Brush.linearGradient(
-                            colors = listOf(PrimaryPurple, AccentCyan)
-                        ),
+                        Brush.linearGradient(colors = listOf(PrimaryPurple, AccentCyan)),
                         shape = RoundedCornerShape(24.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -112,15 +113,9 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            AnimatedVisibility(
-                visible = errorMessage != null,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
+            AnimatedVisibility(visible = errorMessage != null, enter = fadeIn(), exit = fadeOut()) {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF3A1A2A)),
                     shape = RoundedCornerShape(14.dp)
                 ) {
@@ -134,7 +129,14 @@ fun LoginScreen(
             }
 
             Button(
-                onClick = { onNavigateToVkAuth() },
+                onClick = {
+                    // Открываем браузер телефона (Chrome Custom Tabs)
+                    val url = authViewModel.getVkAuthUrl()
+                    CustomTabsIntent.Builder()
+                        .setShowTitle(false)
+                        .build()
+                        .launchUrl(context, Uri.parse(url))
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(58.dp),
