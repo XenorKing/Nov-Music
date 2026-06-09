@@ -76,10 +76,9 @@ fun VkAuthWebViewScreen(
                                 "Chrome/120.0.6099.144 Mobile Safari/537.36"
 
                             // Enable cookies (required by VK login page)
-                            CookieManager.getInstance().apply {
-                                setAcceptCookie(true)
-                                setAcceptThirdPartyCookies(this@apply, true)
-                            }
+                            val cookieManager = CookieManager.getInstance()
+                            cookieManager.setAcceptCookie(true)
+                            cookieManager.setAcceptThirdPartyCookies(this, true)
 
                             webViewClient = object : WebViewClient() {
 
