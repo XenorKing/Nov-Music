@@ -3,48 +3,48 @@ package com.novmusic.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.novmusic.data.api.JamendoMusicApi
+import com.novmusic.data.api.JamendoApiClient
 import com.novmusic.data.model.SavedTrack
 import com.novmusic.data.model.Track
 import com.novmusic.data.model.toSavedTrack
 import com.novmusic.data.model.toTrack
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class MusicRepository @Inject constructor(
-    private val jamendoApi: JamendoMusicApi,
+    private val jamendoClient: JamendoApiClient,
     private val firestore: FirebaseFirestore,
     private val firebaseAuth: FirebaseAuth
 ) {
 
-    suspend fun searchTracks(query: String, offset: Int = 0): Result<List<Track>> {
-        return try {
-            val response = jamendoApi.searchTracks(search = query, offset = offset)
-            val tracks = response.results
-                .filter { !it.audio.isNullOrBlank() || !it.audiodownload.isNullOrBlank() }
-                .map { it.toTrack() }
-            Result.success(tracks)
-        } catch (e: Exception) {
-            Result.failure(e)
+    suspend fun searchTracks(query: String, offset: Int = 0): Result<List<Track>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val tracks = jamendoClient.searchTracks(query = query, offset = offset)
+                    .map { it.toTrack() }
+                Result.success(tracks)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
-    }
 
-    suspend fun getTrendingTracks(): Result<List<Track>> {
-        return try {
-            val response = jamendoApi.getTrendingTracks()
-            val tracks = response.results
-                .filter { !it.audio.isNullOrBlank() || !it.audiodownload.isNullOrBlank() }
-                .map { it.toTrack() }
-            Result.success(tracks)
-        } catch (e: Exception) {
-            Result.failure(e)
+    suspend fun getTrendingTracks(): Result<List<Track>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val tracks = jamendoClient.getTrendingTracks()
+                    .map { it.toTrack() }
+                Result.success(tracks)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
-    }
 
     fun getSavedTracks(): Flow<List<Track>> = callbackFlow {
         val uid = firebaseAuth.currentUser?.uid
