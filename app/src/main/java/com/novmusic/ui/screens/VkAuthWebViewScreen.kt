@@ -1,6 +1,7 @@
 package com.novmusic.ui.screens
 
 import android.annotation.SuppressLint
+import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -67,27 +68,31 @@ fun VkAuthWebViewScreen(
                             settings.javaScriptEnabled = true
                             settings.domStorageEnabled = true
                             settings.loadsImagesAutomatically = true
+                            settings.setSupportZoom(false)
+                            // Full Chrome user agent — VK blocks simplified UAs
                             settings.userAgentString =
-                                "Mozilla/5.0 (Linux; Android 11; Mobile) AppleWebKit/537.36 Chrome/96.0 Mobile Safari/537.36"
+                                "Mozilla/5.0 (Linux; Android 13; Pixel 7) " +
+                                "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                                "Chrome/120.0.6099.144 Mobile Safari/537.36"
+
+                            // Enable cookies (required by VK login page)
+                            CookieManager.getInstance().apply {
+                                setAcceptCookie(true)
+                                setAcceptThirdPartyCookies(this@apply, true)
+                            }
 
                             webViewClient = object : WebViewClient() {
-                                override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+
+                                override fun onPageStarted(
+                                    view: WebView?,
+                                    url: String?,
+                                    favicon: android.graphics.Bitmap?
+                                ) {
                                     super.onPageStarted(view, url, favicon)
                                     isLoading = true
-
                                     if (url != null && url.startsWith(redirectBase)) {
                                         isLoading = false
-                                        val uri = android.net.Uri.parse(url)
-                                        val fragment = uri.fragment ?: ""
-                                        val params = parseFragment(fragment)
-                                        val token = params["access_token"]
-                                        val userId = params["user_id"]
-                                        if (!token.isNullOrBlank() && !userId.isNullOrBlank()) {
-                                            onTokenReceived(token, userId)
-                                        } else {
-                                            val error = params["error"]
-                                            if (error != null) onBack()
-                                        }
+                                        handleRedirect(url, onTokenReceived, onBack)
                                     }
                                 }
 
@@ -102,15 +107,7 @@ fun VkAuthWebViewScreen(
                                 ): Boolean {
                                     val url = request?.url?.toString() ?: return false
                                     if (url.startsWith(redirectBase)) {
-                                        val fragment = request.url.fragment ?: ""
-                                        val params = parseFragment(fragment)
-                                        val token = params["access_token"]
-                                        val userId = params["user_id"]
-                                        if (!token.isNullOrBlank() && !userId.isNullOrBlank()) {
-                                            onTokenReceived(token, userId)
-                                        } else {
-                                            onBack()
-                                        }
+                                        handleRedirect(url, onTokenReceived, onBack)
                                         return true
                                     }
                                     return false
@@ -138,6 +135,24 @@ fun VkAuthWebViewScreen(
                 }
             }
         }
+    }
+}
+
+private fun handleRedirect(
+    url: String,
+    onTokenReceived: (String, String) -> Unit,
+    onBack: () -> Unit
+) {
+    val uri = android.net.Uri.parse(url)
+    // Token is in fragment: blank.html#access_token=TOKEN&...
+    val fragment = uri.fragment ?: ""
+    val params = parseFragment(fragment)
+    val token = params["access_token"]
+    val userId = params["user_id"]
+    if (!token.isNullOrBlank() && !userId.isNullOrBlank()) {
+        onTokenReceived(token, userId)
+    } else {
+        onBack()
     }
 }
 
