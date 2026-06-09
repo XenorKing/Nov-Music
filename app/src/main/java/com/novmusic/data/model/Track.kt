@@ -1,90 +1,105 @@
 package com.novmusic.data.model
 
-  import kotlinx.serialization.SerialName
-  import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-  // iTunes API models
-  @Serializable
-  data class ItunesSearchResponse(
-      @SerialName("resultCount") val resultCount: Int = 0,
-      @SerialName("results") val results: List<ItunesTrack> = emptyList()
-  )
+// Deezer API models
+@Serializable
+data class DeezerSearchResponse(
+    @SerialName("data") val data: List<DeezerTrack> = emptyList(),
+    @SerialName("total") val total: Int = 0
+)
 
-  @Serializable
-  data class ItunesTrack(
-      @SerialName("trackId") val trackId: Long = 0,
-      @SerialName("trackName") val trackName: String = "",
-      @SerialName("artistName") val artistName: String = "",
-      @SerialName("collectionName") val collectionName: String? = null,
-      @SerialName("previewUrl") val previewUrl: String? = null,
-      @SerialName("artworkUrl100") val artworkUrl100: String? = null,
-      @SerialName("artworkUrl60") val artworkUrl60: String? = null,
-      @SerialName("trackTimeMillis") val trackTimeMillis: Long? = null,
-      @SerialName("primaryGenreName") val primaryGenreName: String? = null,
-      @SerialName("trackViewUrl") val trackViewUrl: String? = null
-  )
+@Serializable
+data class DeezerChartsResponse(
+    @SerialName("data") val data: List<DeezerTrack> = emptyList()
+)
 
-  data class Track(
-      val id: String,
-      val title: String,
-      val artist: String,
-      val duration: Long,
-      val artworkUrl: String?,
-      val streamUrl: String?,
-      val permalinkUrl: String,
-      val genre: String?,
-      val playbackCount: Long,
-      val likesCount: Long,
-      val isSaved: Boolean = false
-  )
+@Serializable
+data class DeezerTrack(
+    @SerialName("id") val id: Long = 0,
+    @SerialName("title") val title: String = "",
+    @SerialName("preview") val preview: String? = null,
+    @SerialName("duration") val duration: Int = 0,
+    @SerialName("artist") val artist: DeezerArtist = DeezerArtist(),
+    @SerialName("album") val album: DeezerAlbum = DeezerAlbum()
+)
 
-  fun ItunesTrack.toTrack(): Track = Track(
-      id = trackId.toString(),
-      title = trackName,
-      artist = artistName,
-      duration = trackTimeMillis ?: 30000L,
-      artworkUrl = artworkUrl100?.replace("100x100", "300x300") ?: artworkUrl100,
-      streamUrl = previewUrl,
-      permalinkUrl = trackViewUrl ?: "",
-      genre = primaryGenreName,
-      playbackCount = 0,
-      likesCount = 0
-  )
+@Serializable
+data class DeezerArtist(
+    @SerialName("id") val id: Long = 0,
+    @SerialName("name") val name: String = ""
+)
 
-  data class SavedTrack(
-      val id: String = "",
-      val title: String = "",
-      val artist: String = "",
-      val artworkUrl: String? = null,
-      val streamUrl: String? = null,
-      val permalinkUrl: String = "",
-      val genre: String? = null,
-      val duration: Long = 0,
-      val savedAt: Long = System.currentTimeMillis()
-  )
+@Serializable
+data class DeezerAlbum(
+    @SerialName("id") val id: Long = 0,
+    @SerialName("title") val title: String = "",
+    @SerialName("cover_medium") val coverMedium: String? = null,
+    @SerialName("cover_big") val coverBig: String? = null
+)
 
-  fun SavedTrack.toTrack(): Track = Track(
-      id = id,
-      title = title,
-      artist = artist,
-      duration = duration,
-      artworkUrl = artworkUrl,
-      streamUrl = streamUrl,
-      permalinkUrl = permalinkUrl,
-      genre = genre,
-      playbackCount = 0,
-      likesCount = 0,
-      isSaved = true
-  )
+// App domain model
+data class Track(
+    val id: String,
+    val title: String,
+    val artist: String,
+    val duration: Long,
+    val artworkUrl: String?,
+    val streamUrl: String?,
+    val permalinkUrl: String,
+    val genre: String?,
+    val playbackCount: Long,
+    val likesCount: Long,
+    val isSaved: Boolean = false
+)
 
-  fun Track.toSavedTrack(): SavedTrack = SavedTrack(
-      id = id,
-      title = title,
-      artist = artist,
-      artworkUrl = artworkUrl,
-      streamUrl = streamUrl,
-      permalinkUrl = permalinkUrl,
-      genre = genre,
-      duration = duration
-  )
-  
+fun DeezerTrack.toTrack(): Track = Track(
+    id = id.toString(),
+    title = title,
+    artist = artist.name,
+    duration = duration * 1000L,
+    artworkUrl = album.coverBig ?: album.coverMedium,
+    streamUrl = preview,
+    permalinkUrl = "",
+    genre = null,
+    playbackCount = 0,
+    likesCount = 0
+)
+
+data class SavedTrack(
+    val id: String = "",
+    val title: String = "",
+    val artist: String = "",
+    val artworkUrl: String? = null,
+    val streamUrl: String? = null,
+    val permalinkUrl: String = "",
+    val genre: String? = null,
+    val duration: Long = 0,
+    val savedAt: Long = System.currentTimeMillis()
+)
+
+fun SavedTrack.toTrack(): Track = Track(
+    id = id,
+    title = title,
+    artist = artist,
+    duration = duration,
+    artworkUrl = artworkUrl,
+    streamUrl = streamUrl,
+    permalinkUrl = permalinkUrl,
+    genre = genre,
+    playbackCount = 0,
+    likesCount = 0,
+    isSaved = true
+)
+
+fun Track.toSavedTrack(): SavedTrack = SavedTrack(
+    id = id,
+    title = title,
+    artist = artist,
+    artworkUrl = artworkUrl,
+    streamUrl = streamUrl,
+    permalinkUrl = permalinkUrl,
+    genre = genre,
+    duration = duration
+)

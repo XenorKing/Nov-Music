@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -34,19 +35,21 @@ import com.novmusic.ui.theme.*
 import com.novmusic.ui.viewmodel.AuthViewModel
 
 @Composable
-fun LoginScreen(
+fun RegisterScreen(
     authViewModel: AuthViewModel,
     onNavigateToHome: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToLogin: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
 
+    var nickname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var showResetDialog by remember { mutableStateOf(false) }
-    var resetEmail by remember { mutableStateOf("") }
+    var confirmVisible by remember { mutableStateOf(false) }
+    var localError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(uiState.isLoggedIn) {
         if (uiState.isLoggedIn) onNavigateToHome()
@@ -71,7 +74,6 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(60.dp))
 
-            // App icon
             Box(
                 modifier = Modifier
                     .size(88.dp)
@@ -81,20 +83,15 @@ fun LoginScreen(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.MusicNote,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(48.dp)
-                )
+                Icon(Icons.Default.MusicNote, null, tint = Color.White, modifier = Modifier.size(48.dp))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "novМузыка",
+                text = "Создать аккаунт",
                 color = Color.White,
-                fontSize = 28.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
@@ -102,13 +99,41 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "Войдите в свой аккаунт",
+                text = "Начните слушать музыку",
                 color = Color.White.copy(alpha = 0.55f),
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(36.dp))
+
+            val fieldColors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = PrimaryPurple,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                focusedContainerColor = Color.White.copy(alpha = 0.07f),
+                unfocusedContainerColor = Color.White.copy(alpha = 0.07f),
+                cursorColor = PrimaryPurple
+            )
+
+            // Nickname field
+            OutlinedTextField(
+                value = nickname,
+                onValueChange = { nickname = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Никнейм", color = Color.White.copy(alpha = 0.4f)) },
+                leadingIcon = {
+                    Icon(Icons.Default.Person, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                colors = fieldColors
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Email field
             OutlinedTextField(
@@ -123,15 +148,7 @@ fun LoginScreen(
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = PrimaryPurple,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
-                    focusedContainerColor = Color.White.copy(alpha = 0.07f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.07f),
-                    cursorColor = PrimaryPurple
-                )
+                colors = fieldColors
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -141,7 +158,7 @@ fun LoginScreen(
                 value = password,
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Пароль", color = Color.White.copy(alpha = 0.4f)) },
+                placeholder = { Text("Пароль (мин. 6 символов)", color = Color.White.copy(alpha = 0.4f)) },
                 leadingIcon = {
                     Icon(Icons.Default.Lock, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
                 },
@@ -156,40 +173,47 @@ fun LoginScreen(
                     }
                 },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = {
-                    focusManager.clearFocus()
-                    authViewModel.login(email, password)
-                }),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = PrimaryPurple,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
-                    focusedContainerColor = Color.White.copy(alpha = 0.07f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.07f),
-                    cursorColor = PrimaryPurple
-                )
+                colors = fieldColors
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Forgot password
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                Text(
-                    text = "Забыли пароль?",
-                    color = PrimaryPurple,
-                    fontSize = 13.sp,
-                    modifier = Modifier.clickable { showResetDialog = true }
-                )
-            }
+            // Confirm password field
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Повторите пароль", color = Color.White.copy(alpha = 0.4f)) },
+                leadingIcon = {
+                    Icon(Icons.Default.Lock, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                },
+                trailingIcon = {
+                    IconButton(onClick = { confirmVisible = !confirmVisible }) {
+                        Icon(
+                            imageVector = if (confirmVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                },
+                visualTransformation = if (confirmVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                colors = fieldColors
+            )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Error message
-            uiState.error?.let { error ->
+            // Errors
+            val displayError = localError ?: uiState.error
+            displayError?.let { error ->
                 Text(
                     text = error,
                     color = Color(0xFFFF6B6B),
@@ -199,10 +223,20 @@ fun LoginScreen(
                 )
             }
 
-            // Login button
+            // Register button
             Button(
-                onClick = { authViewModel.login(email, password) },
-                enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank(),
+                onClick = {
+                    localError = null
+                    authViewModel.clearError()
+                    when {
+                        nickname.isBlank() -> localError = "Введите никнейм"
+                        email.isBlank() -> localError = "Введите email"
+                        password.length < 6 -> localError = "Пароль должен быть не менее 6 символов"
+                        password != confirmPassword -> localError = "Пароли не совпадают"
+                        else -> authViewModel.register(email, password, nickname)
+                    }
+                },
+                enabled = !uiState.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -215,69 +249,24 @@ fun LoginScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Text("Войти", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Зарегистрироваться", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Register link
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                Text("Нет аккаунта? ", color = Color.White.copy(alpha = 0.55f), fontSize = 14.sp)
+                Text("Уже есть аккаунт? ", color = Color.White.copy(alpha = 0.55f), fontSize = 14.sp)
                 Text(
-                    text = "Зарегистрироваться",
+                    text = "Войти",
                     color = PrimaryPurple,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clickable { onNavigateToRegister() }
+                    modifier = Modifier.clickable { onNavigateToLogin() }
                 )
             }
 
             Spacer(modifier = Modifier.height(60.dp))
         }
-    }
-
-    // Reset password dialog
-    if (showResetDialog) {
-        AlertDialog(
-            onDismissRequest = { showResetDialog = false; authViewModel.clearSuccess() },
-            containerColor = Color(0xFF1A1530),
-            title = { Text("Сброс пароля", color = Color.White, fontWeight = FontWeight.Bold) },
-            text = {
-                Column {
-                    uiState.successMessage?.let {
-                        Text(it, color = Color(0xFF4CAF50), fontSize = 13.sp, modifier = Modifier.padding(bottom = 8.dp))
-                    }
-                    Text("Введите email для получения инструкций:", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = resetEmail,
-                        onValueChange = { resetEmail = it },
-                        placeholder = { Text("Email", color = Color.White.copy(alpha = 0.4f)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedBorderColor = PrimaryPurple,
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                            focusedContainerColor = Color.White.copy(alpha = 0.07f),
-                            unfocusedContainerColor = Color.White.copy(alpha = 0.07f),
-                            cursorColor = PrimaryPurple
-                        )
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { authViewModel.sendPasswordReset(resetEmail) }) {
-                    Text("Отправить", color = PrimaryPurple)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showResetDialog = false; authViewModel.clearSuccess() }) {
-                    Text("Отмена", color = Color.White.copy(alpha = 0.6f))
-                }
-            }
-        )
     }
 }

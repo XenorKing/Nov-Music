@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "679147109320",
+    "project_id": "nov-music",
+    "storage_bucket": "nov-music.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:679147109320:android:d32b0a93609d8d3df5defd",
+        "android_client_info": {
+          "package_name": "com.novmusic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBrrLlSUFmrqUS1qJGrfLeYi-5PO50BfE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

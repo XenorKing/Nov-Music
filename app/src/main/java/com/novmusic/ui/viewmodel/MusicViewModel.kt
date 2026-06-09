@@ -18,9 +18,11 @@ data class MusicUiState(
     val searchResults: List<Track> = emptyList(),
     val trendingTracks: List<Track> = emptyList(),
     val savedTracks: List<Track> = emptyList(),
+    val historyTracks: List<Track> = emptyList(),
     val isSearchLoading: Boolean = false,
     val isTrendingLoading: Boolean = false,
     val isSavedLoading: Boolean = false,
+    val isHistoryLoading: Boolean = false,
     val error: String? = null,
     val savedTrackIds: Set<String> = emptySet(),
     val saveMessage: String? = null
@@ -40,6 +42,7 @@ class MusicViewModel @Inject constructor(
     init {
         loadTrendingTracks()
         loadSavedTracks()
+        loadHistory()
     }
 
     fun onSearchQueryChange(query: String) {
@@ -49,7 +52,6 @@ class MusicViewModel @Inject constructor(
     fun search() {
         val query = _uiState.value.searchQuery.trim()
         if (query.isBlank()) return
-
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSearchLoading = true, error = null)
             val result = musicRepository.searchTracks(query)
@@ -88,8 +90,23 @@ class MusicViewModel @Inject constructor(
         }
     }
 
+    fun loadHistory() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isHistoryLoading = true)
+            musicRepository.getHistory(20).collect { tracks ->
+                _uiState.value = _uiState.value.copy(
+                    isHistoryLoading = false,
+                    historyTracks = tracks
+                )
+            }
+        }
+    }
+
     fun playTrack(track: Track) {
         playerController.playTrack(track)
+        viewModelScope.launch {
+            musicRepository.addToHistory(track)
+        }
     }
 
     fun togglePlayPause() {
