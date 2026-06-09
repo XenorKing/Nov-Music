@@ -14,6 +14,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -41,6 +44,10 @@ class AuthViewModel @Inject constructor(
 
     private val _authEvent = MutableStateFlow<AuthEvent>(AuthEvent.Idle)
     val authEvent: StateFlow<AuthEvent> = _authEvent.asStateFlow()
+
+    val hasVkToken: StateFlow<Boolean> = vkTokenStorage.token
+        .map { it != null }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         viewModelScope.launch {
@@ -94,19 +101,26 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun openVkAuth(context: Context) {
+    fun getVkAuthUrl(): String {
         val appId = BuildConfig.VK_APP_ID
-        val redirectUri = "novmusic://vk-callback"
-        val scope = "audio,offline"
-        val vkAuthUrl = "https://oauth.vk.com/authorize" +
+        return "https://oauth.vk.com/authorize" +
                 "?client_id=$appId" +
-                "&redirect_uri=$redirectUri" +
-                "&scope=$scope" +
+                "&redirect_uri=https://oauth.vk.com/blank.html" +
+                "&scope=audio,offline" +
                 "&response_type=token" +
-                "&v=5.131"
+                "&v=5.131" +
+                "&display=mobile"
+    }
 
+    fun handleVkTokenReceived(token: String, userId: String) {
+        vkTokenStorage.saveToken(token)
+        signInWithVk(token, userId, "VK User")
+    }
+
+    @Deprecated("Use getVkAuthUrl() + VkAuthWebViewScreen instead")
+    fun openVkAuth(context: Context) {
         val customTabsIntent = CustomTabsIntent.Builder().build()
-        customTabsIntent.launchUrl(context, Uri.parse(vkAuthUrl))
+        customTabsIntent.launchUrl(context, Uri.parse(getVkAuthUrl()))
     }
 
     private fun signInWithVk(token: String, userId: String, userName: String) {
