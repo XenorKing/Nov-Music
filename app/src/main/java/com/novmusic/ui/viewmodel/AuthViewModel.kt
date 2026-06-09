@@ -103,15 +103,16 @@ class AuthViewModel @Inject constructor(
 
     fun getVkAuthUrl(): String {
         val appId = BuildConfig.VK_APP_ID
-        // redirect_uri = novmusic://vk-callback — перехватывается AndroidManifest deep link
-        val redirectUri = "novmusic%3A%2F%2Fvk-callback"
+        // redirect_uri must be https://oauth.vk.com/blank.html — VK rejects custom schemes (Security Error)
+        // VkAuthWebViewScreen intercepts this URL and extracts the token from the fragment
+        val redirectUri = "https%3A%2F%2Foauth.vk.com%2Fblank.html"
         return "https://oauth.vk.com/authorize" +
                 "?client_id=$appId" +
                 "&redirect_uri=$redirectUri" +
                 "&scope=audio,offline" +
                 "&response_type=token" +
                 "&v=5.131" +
-                "&display=page"
+                "&display=mobile"
     }
 
     fun handleVkTokenReceived(token: String, userId: String) {
