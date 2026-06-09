@@ -4,35 +4,53 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SoundCloudSearchResponse(
-    val collection: List<SoundCloudTrack> = emptyList(),
-    @SerialName("next_href") val nextHref: String? = null,
-    @SerialName("total_results") val totalResults: Int = 0
+data class VkAudioResponse(
+    val response: VkAudioItems? = null,
+    val error: VkError? = null
 )
 
 @Serializable
-data class SoundCloudTrack(
+data class VkPopularResponse(
+    val response: List<VkAudio> = emptyList(),
+    val error: VkError? = null
+)
+
+@Serializable
+data class VkAudioItems(
+    val count: Int = 0,
+    val items: List<VkAudio> = emptyList()
+)
+
+@Serializable
+data class VkAudio(
+    val id: Long = 0,
+    @SerialName("owner_id") val ownerId: Long = 0,
+    val artist: String = "",
+    val title: String = "",
+    val duration: Int = 0,
+    val url: String = "",
+    val album: VkAlbum? = null,
+    @SerialName("is_explicit") val isExplicit: Boolean = false
+)
+
+@Serializable
+data class VkAlbum(
     val id: Long = 0,
     val title: String = "",
-    val description: String? = null,
-    val duration: Long = 0,
-    @SerialName("stream_url") val streamUrl: String? = null,
-    @SerialName("permalink_url") val permalinkUrl: String = "",
-    @SerialName("artwork_url") val artworkUrl: String? = null,
-    val user: SoundCloudUser = SoundCloudUser(),
-    val genre: String? = null,
-    @SerialName("playback_count") val playbackCount: Long = 0,
-    @SerialName("likes_count") val likesCount: Long = 0,
-    val streamable: Boolean = false,
-    val kind: String = ""
+    val thumb: VkThumb? = null
 )
 
 @Serializable
-data class SoundCloudUser(
-    val id: Long = 0,
-    val username: String = "",
-    @SerialName("avatar_url") val avatarUrl: String? = null,
-    @SerialName("permalink_url") val permalinkUrl: String = ""
+data class VkThumb(
+    @SerialName("photo_68") val photo68: String? = null,
+    @SerialName("photo_300") val photo300: String? = null,
+    @SerialName("photo_600") val photo600: String? = null
+)
+
+@Serializable
+data class VkError(
+    @SerialName("error_code") val errorCode: Int = 0,
+    @SerialName("error_msg") val errorMsg: String = ""
 )
 
 data class Track(
@@ -49,17 +67,17 @@ data class Track(
     val isSaved: Boolean = false
 )
 
-fun SoundCloudTrack.toTrack(): Track = Track(
-    id = id.toString(),
+fun VkAudio.toTrack(): Track = Track(
+    id = "${ownerId}_${id}",
     title = title,
-    artist = user.username,
-    duration = duration,
-    artworkUrl = artworkUrl?.replace("large", "t500x500"),
-    streamUrl = streamUrl,
-    permalinkUrl = permalinkUrl,
-    genre = genre,
-    playbackCount = playbackCount,
-    likesCount = likesCount
+    artist = artist,
+    duration = duration * 1000L,
+    artworkUrl = album?.thumb?.photo300 ?: album?.thumb?.photo68,
+    streamUrl = url.takeIf { it.isNotBlank() },
+    permalinkUrl = "https://vk.com/audio${ownerId}_${id}",
+    genre = null,
+    playbackCount = 0,
+    likesCount = 0
 )
 
 data class SavedTrack(
