@@ -1,0 +1,17 @@
+# Скопируй этот файл в local.properties и заполни значения
+
+# SoundCloud API Client ID
+# Получи на: https://developers.soundcloud.com/
+# Зарегистрируй приложение и скопируй Client ID
+SOUNDCLOUD_CLIENT_ID=your_soundcloud_client_id_here
+
+# VK App ID
+# Получи на: https://vk.com/apps?act=manage
+# Создай новое Standalone-приложение
+VK_APP_ID=your_vk_app_id_here
+
+# Keystore (только для Release сборки)
+# KEYSTORE_PATH=keystore.jks
+# KEYSTORE_PASS=your_keystore_password
+# KEY_ALIAS=your_key_alias
+# KEY_PASS=your_key_password
