@@ -27,18 +27,20 @@ import coil.compose.AsyncImage
 import com.novmusic.data.model.Track
 import com.novmusic.ui.components.MiniPlayer
 import com.novmusic.ui.theme.*
+import com.novmusic.ui.viewmodel.AuthState
 import com.novmusic.ui.viewmodel.AuthViewModel
 import com.novmusic.ui.viewmodel.MusicViewModel
-import com.novmusic.ui.viewmodel.AuthState
 
 @Composable
 fun HomeScreen(
     musicViewModel: MusicViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    onNavigateToVkAuth: () -> Unit = {}
 ) {
     val uiState by musicViewModel.uiState.collectAsState()
     val playerState by musicViewModel.playerState.collectAsState()
     val authState by authViewModel.authState.collectAsState()
+    val hasVkToken by authViewModel.hasVkToken.collectAsState()
     val userName = (authState as? AuthState.Authenticated)?.user?.displayName ?: "Слушатель"
 
     Box(
@@ -48,7 +50,7 @@ fun HomeScreen(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = if (playerState.currentTrack != null) 80.dp else 16.dp)
+            contentPadding = PaddingValues(bottom = if (playerState.currentTrack != null) 90.dp else 16.dp)
         ) {
             item {
                 Box(
@@ -56,10 +58,13 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(PrimaryPurple.copy(alpha = 0.3f), Color.Transparent)
+                                colors = listOf(
+                                    PrimaryPurple.copy(alpha = 0.25f),
+                                    Color.Transparent
+                                )
                             )
                         )
-                        .padding(horizontal = 24.dp, vertical = 32.dp)
+                        .padding(horizontal = 24.dp, vertical = 28.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -70,51 +75,135 @@ fun HomeScreen(
                             Text(
                                 text = "Привет, $userName",
                                 color = OnSurfaceVariantDark,
-                                fontSize = 14.sp
+                                fontSize = 13.sp
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = "novМузыка",
                                 color = OnSurfaceDark,
-                                fontSize = 28.sp,
+                                fontSize = 26.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        IconButton(onClick = { authViewModel.signOut() }) {
-                            Icon(Icons.Default.Logout, null, tint = OnSurfaceVariantDark)
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(SurfaceVariantDark)
+                                .clickable { authViewModel.signOut() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Logout,
+                                null,
+                                tint = OnSurfaceVariantDark,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (!hasVkToken) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 4.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A40))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Подключи ВКонтакте",
+                                    color = OnSurfaceDark,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Нужно для доступа к музыке",
+                                    color = OnSurfaceVariantDark,
+                                    fontSize = 12.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Button(
+                                onClick = { onNavigateToVkAuth() },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A90D9)),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text("Войти", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
                 }
             }
 
             item {
-                Text(
-                    text = "Популярное",
-                    color = OnSurfaceDark,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Популярное",
+                        color = OnSurfaceDark,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (uiState.isTrendingLoading) {
+                        CircularProgressIndicator(
+                            color = PrimaryPurple,
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
             }
 
             item {
-                if (uiState.isTrendingLoading) {
+                if (uiState.trendingTracks.isEmpty() && !uiState.isTrendingLoading) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp),
+                            .height(160.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = PrimaryPurple)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Default.MusicNote,
+                                null,
+                                tint = OnSurfaceVariantDark.copy(alpha = 0.4f),
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = if (!hasVkToken) "Войдите через VK для музыки" else "Треки не найдены",
+                                color = OnSurfaceVariantDark.copy(alpha = 0.6f),
+                                fontSize = 13.sp
+                            )
+                        }
                     }
-                } else {
+                } else if (!uiState.isTrendingLoading) {
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         items(uiState.trendingTracks.take(10)) { track ->
                             TrendingTrackCard(
                                 track = track,
-                                isSaved = uiState.savedTrackIds.contains(track.id),
                                 isPlaying = playerState.currentTrack?.id == track.id && playerState.isPlaying,
                                 onClick = { musicViewModel.playTrack(track) }
                             )
@@ -124,13 +213,13 @@ fun HomeScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = "Все популярные",
                     color = OnSurfaceDark,
-                    fontSize = 20.sp,
+                    fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
                 )
             }
 
@@ -161,7 +250,11 @@ fun HomeScreen(
             Snackbar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = if (playerState.currentTrack != null) 90.dp else 16.dp, start = 16.dp, end = 16.dp),
+                    .padding(
+                        bottom = if (playerState.currentTrack != null) 90.dp else 16.dp,
+                        start = 16.dp,
+                        end = 16.dp
+                    ),
                 containerColor = SurfaceVariantDark,
                 contentColor = OnSurfaceDark
             ) {
@@ -174,19 +267,18 @@ fun HomeScreen(
 @Composable
 fun TrendingTrackCard(
     track: Track,
-    isSaved: Boolean,
     isPlaying: Boolean,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
-            .width(150.dp)
+            .width(148.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceVariantDark)
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
     ) {
         Column {
-            Box(modifier = Modifier.size(150.dp)) {
+            Box(modifier = Modifier.size(148.dp)) {
                 if (track.artworkUrl != null) {
                     AsyncImage(
                         model = track.artworkUrl,
@@ -198,20 +290,36 @@ fun TrendingTrackCard(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Brush.linearGradient(listOf(PrimaryPurple, SecondaryPink))),
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(PrimaryPurple, AccentCyan.copy(alpha = 0.7f))
+                                )
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.MusicNote, null, tint = Color.White, modifier = Modifier.size(48.dp))
+                        Icon(
+                            Icons.Default.MusicNote,
+                            null,
+                            tint = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.size(48.dp)
+                        )
                     }
                 }
                 if (isPlaying) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(PrimaryPurple.copy(alpha = 0.4f)),
+                            .background(PrimaryPurple.copy(alpha = 0.5f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("▶", color = Color.White, fontSize = 32.sp)
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color.White.copy(alpha = 0.15f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("▶", color = Color.White, fontSize = 18.sp)
+                        }
                     }
                 }
             }
@@ -219,11 +327,12 @@ fun TrendingTrackCard(
                 Text(
                     text = track.title,
                     color = OnSurfaceDark,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = track.artist,
                     color = OnSurfaceVariantDark,
@@ -248,13 +357,13 @@ fun TrackListItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 8.dp),
+            .padding(horizontal = 20.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .size(50.dp)
+                .clip(RoundedCornerShape(12.dp))
         ) {
             if (track.artworkUrl != null) {
                 AsyncImage(
@@ -267,20 +376,27 @@ fun TrackListItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Brush.linearGradient(listOf(PrimaryPurple, SecondaryPink))),
+                        .background(
+                            Brush.linearGradient(listOf(PrimaryPurple, AccentCyan.copy(alpha = 0.7f)))
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.MusicNote, null, tint = Color.White, modifier = Modifier.size(24.dp))
+                    Icon(
+                        Icons.Default.MusicNote,
+                        null,
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(22.dp)
+                    )
                 }
             }
             if (isPlaying) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(PrimaryPurple.copy(alpha = 0.5f)),
+                        .background(PrimaryPurple.copy(alpha = 0.6f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("▶", color = Color.White, fontSize = 14.sp)
+                    Text("▶", color = Color.White, fontSize = 13.sp)
                 }
             }
         }
@@ -298,6 +414,7 @@ fun TrackListItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = track.artist,
                 color = OnSurfaceVariantDark,
@@ -307,11 +424,14 @@ fun TrackListItem(
             )
         }
 
-        IconButton(onClick = onSaveToggle) {
+        IconButton(
+            onClick = onSaveToggle,
+            modifier = Modifier.size(36.dp)
+        ) {
             Text(
                 text = if (isSaved) "♥" else "♡",
                 color = if (isSaved) SecondaryPink else OnSurfaceVariantDark,
-                fontSize = 20.sp
+                fontSize = 18.sp
             )
         }
     }
