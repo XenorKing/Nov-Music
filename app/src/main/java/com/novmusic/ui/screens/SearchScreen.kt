@@ -102,7 +102,37 @@ package com.novmusic.ui.screens
                           }
                       }
                   }
-                  uiState.searchResults.isEmpty() && uiState.searchQuery.isNotBlank() -> {
+                                    uiState.searchError != null -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(horizontal = 24.dp)
+                            ) {
+                                Icon(Icons.Default.MusicNote, null,
+                                    tint = androidx.compose.ui.graphics.Color(0xFFFF6B6B).copy(alpha = 0.6f),
+                                    modifier = Modifier.size(56.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "Ошибка поиска",
+                                    color = androidx.compose.ui.graphics.Color(0xFFFF6B6B),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = uiState.searchError!!,
+                                    color = OnSurfaceVariantDark,
+                                    fontSize = 12.sp,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                TextButton(onClick = { musicViewModel.search() }) {
+                                    Text("Повторить", color = PrimaryPurple)
+                                }
+                            }
+                        }
+                    }
+                    uiState.searchResults.isEmpty() && uiState.searchQuery.isNotBlank() && uiState.searchError == null -> {
                       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                           Column(horizontalAlignment = Alignment.CenterHorizontally) {
                               Icon(Icons.Default.MusicNote, null,
