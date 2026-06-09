@@ -1,13 +1,10 @@
 # Скопируй этот файл в local.properties и заполни значения
 
-# SoundCloud API Client ID
-# Получи на: https://developers.soundcloud.com/
-# Зарегистрируй приложение и скопируй Client ID
-SOUNDCLOUD_CLIENT_ID=your_soundcloud_client_id_here
-
 # VK App ID
-# Получи на: https://vk.com/apps?act=manage
-# Создай новое Standalone-приложение
+# Как получить:
+# 1. Зайди на https://vk.com/editapp?act=create
+# 2. Выбери тип "Standalone-приложение"
+# 3. После создания скопируй ID приложения (число вверху страницы)
 VK_APP_ID=your_vk_app_id_here
 
 # Keystore (только для Release сборки)
