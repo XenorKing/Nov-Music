@@ -32,10 +32,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.novmusic.ui.screens.ForgotPasswordScreen
 import com.novmusic.ui.screens.HomeScreen
 import com.novmusic.ui.screens.LoginScreen
-import com.novmusic.ui.screens.RegisterScreen
 import com.novmusic.ui.screens.SavedTracksScreen
 import com.novmusic.ui.screens.SearchScreen
 import com.novmusic.ui.screens.VkAuthWebViewScreen
@@ -48,8 +46,6 @@ import com.novmusic.ui.viewmodel.MusicViewModel
 
 object Routes {
     const val LOGIN = "login"
-    const val REGISTER = "register"
-    const val FORGOT_PASSWORD = "forgot_password"
     const val VK_AUTH = "vk_auth"
     const val HOME = "home"
     const val SEARCH = "search"
@@ -108,31 +104,14 @@ fun NovMusicNavHost(
                 composable(Routes.LOGIN) {
                     LoginScreen(
                         authViewModel = authViewModel,
-                        onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
-                        onNavigateToForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
+                        onNavigateToRegister = {},
+                        onNavigateToForgotPassword = {},
                         onNavigateToVkAuth = { navController.navigate(Routes.VK_AUTH) },
                         onNavigateToHome = {
                             navController.navigate(Routes.HOME) {
                                 popUpTo(Routes.LOGIN) { inclusive = true }
                             }
                         }
-                    )
-                }
-                composable(Routes.REGISTER) {
-                    RegisterScreen(
-                        authViewModel = authViewModel,
-                        onNavigateToLogin = { navController.navigateUp() },
-                        onNavigateToHome = {
-                            navController.navigate(Routes.HOME) {
-                                popUpTo(Routes.LOGIN) { inclusive = true }
-                            }
-                        }
-                    )
-                }
-                composable(Routes.FORGOT_PASSWORD) {
-                    ForgotPasswordScreen(
-                        authViewModel = authViewModel,
-                        onNavigateBack = { navController.navigateUp() }
                     )
                 }
                 composable(Routes.VK_AUTH) {
