@@ -4,8 +4,7 @@ import android.content.Context
 import androidx.media3.exoplayer.ExoPlayer
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.novmusic.BuildConfig
-import com.novmusic.data.api.SoundCloudApi
+import com.novmusic.data.api.VkMusicApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,7 +22,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private const val SOUNDCLOUD_BASE_URL = "https://api.soundcloud.com/"
+    private const val VK_API_BASE_URL = "https://api.vk.com/method/"
 
     @Provides
     @Singleton
@@ -37,14 +36,6 @@ object AppModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val original = chain.request()
-                val urlWithKey = original.url.newBuilder()
-                    .addQueryParameter("client_id", BuildConfig.SOUNDCLOUD_CLIENT_ID)
-                    .build()
-                val request = original.newBuilder().url(urlWithKey).build()
-                chain.proceed(request)
-            }
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BASIC
             })
@@ -53,13 +44,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSoundCloudApi(okHttpClient: OkHttpClient, json: Json): SoundCloudApi {
+    fun provideVkMusicApi(okHttpClient: OkHttpClient, json: Json): VkMusicApi {
         return Retrofit.Builder()
-            .baseUrl(SOUNDCLOUD_BASE_URL)
+            .baseUrl(VK_API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
-            .create(SoundCloudApi::class.java)
+            .create(VkMusicApi::class.java)
     }
 
     @Provides
