@@ -19,6 +19,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Обрабатываем deep link если запуск через него
+        handleVkDeepLink(intent)
         setContent {
             NovMusicTheme {
                 val authViewModel: AuthViewModel = hiltViewModel()
@@ -31,14 +33,37 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        val data = intent.data
-        if (data != null && data.scheme == "novmusic" && data.host == "vk-callback") {
+        handleVkDeepLink(intent)
+    }
+
+    private fun handleVkDeepLink(intent: Intent) {
+        val data = intent.data ?: return
+        if (data.scheme != "novmusic" || data.host != "vk-callback") return
+
+        // VK возвращает токен в ФРАГМЕНТЕ (#), не в query-параметрах
+        // Пример: novmusic://vk-callback#access_token=TOKEN&user_id=123&...
+        val fragment = data.fragment ?: ""
+        if (fragment.isNotBlank()) {
+            val params = parseFragment(fragment)
+            val token = params["access_token"]
+            val userId = params["user_id"]
+            if (!token.isNullOrBlank() && !userId.isNullOrBlank()) {
+                VkCallbackHolder.onVkCallback(token, userId)
+            }
+        } else {
+            // Fallback: иногда токен в query params
             val token = data.getQueryParameter("access_token")
             val userId = data.getQueryParameter("user_id")
-            if (token != null && userId != null) {
-                // Передаём токен в ViewModel через broadcast или SharedFlow
+            if (!token.isNullOrBlank() && !userId.isNullOrBlank()) {
                 VkCallbackHolder.onVkCallback(token, userId)
             }
         }
+    }
+
+    private fun parseFragment(fragment: String): Map<String, String> {
+        return fragment.split("&").mapNotNull { pair ->
+            val idx = pair.indexOf('=')
+            if (idx > 0) pair.substring(0, idx) to pair.substring(idx + 1) else null
+        }.toMap()
     }
 }
