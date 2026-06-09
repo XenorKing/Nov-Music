@@ -2,6 +2,8 @@ package com.novmusic.data.api
 
 import com.novmusic.data.model.JamendoTrack
 import com.novmusic.data.model.JamendoTracksResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -39,17 +41,17 @@ class JamendoApiClient @Inject constructor(
         return fetchTracks(url)
     }
 
-    private fun fetchTracks(url: String): List<JamendoTrack> {
+    private suspend fun fetchTracks(url: String): List<JamendoTrack> = withContext(Dispatchers.IO) {
         val request = Request.Builder()
             .url(url)
             .addHeader("Accept", "application/json")
             .build()
 
         val response = okHttpClient.newCall(request).execute()
-        if (!response.isSuccessful) return emptyList()
+        if (!response.isSuccessful) return@withContext emptyList()
 
-        val body = response.body?.string() ?: return emptyList()
-        return try {
+        val body = response.body?.string() ?: return@withContext emptyList()
+        try {
             val parsed = json.decodeFromString<JamendoTracksResponse>(body)
             parsed.results.filter { !it.audio.isNullOrBlank() }
         } catch (e: Exception) {
