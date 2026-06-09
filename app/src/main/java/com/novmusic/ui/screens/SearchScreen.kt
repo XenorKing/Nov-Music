@@ -23,12 +23,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.novmusic.ui.components.MiniPlayer
 import com.novmusic.ui.theme.*
+import com.novmusic.ui.viewmodel.AuthViewModel
 import com.novmusic.ui.viewmodel.MusicViewModel
 
 @Composable
-fun SearchScreen(musicViewModel: MusicViewModel) {
+fun SearchScreen(
+    musicViewModel: MusicViewModel,
+    authViewModel: AuthViewModel,
+    onNavigateToVkAuth: () -> Unit = {}
+) {
     val uiState by musicViewModel.uiState.collectAsState()
     val playerState by musicViewModel.playerState.collectAsState()
+    val hasVkToken by authViewModel.hasVkToken.collectAsState()
     val focusManager = LocalFocusManager.current
 
     Box(
@@ -37,25 +43,29 @@ fun SearchScreen(musicViewModel: MusicViewModel) {
             .background(BackgroundDark)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(52.dp))
 
             Text(
                 text = "Поиск",
                 color = OnSurfaceDark,
-                fontSize = 28.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = { musicViewModel.onSearchQueryChange(it) },
                 placeholder = { Text("Трек, исполнитель...", color = OnSurfaceVariantDark) },
-                leadingIcon = { Icon(Icons.Default.Search, null, tint = PrimaryPurple) },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, null, tint = PrimaryPurple, modifier = Modifier.size(20.dp))
+                },
                 trailingIcon = {
                     if (uiState.searchQuery.isNotBlank()) {
                         IconButton(onClick = { musicViewModel.onSearchQueryChange("") }) {
-                            Icon(Icons.Default.Clear, null, tint = OnSurfaceVariantDark)
+                            Icon(Icons.Default.Clear, null, tint = OnSurfaceVariantDark, modifier = Modifier.size(18.dp))
                         }
                     }
                 },
@@ -67,11 +77,11 @@ fun SearchScreen(musicViewModel: MusicViewModel) {
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
+                    .padding(horizontal = 24.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryPurple,
-                    unfocusedBorderColor = Color(0xFF4A4A6A),
+                    unfocusedBorderColor = DividerColor,
                     focusedTextColor = OnSurfaceDark,
                     unfocusedTextColor = OnSurfaceDark,
                     cursorColor = PrimaryPurple,
@@ -80,7 +90,49 @@ fun SearchScreen(musicViewModel: MusicViewModel) {
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (!hasVkToken) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 4.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A40))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Нужен VK-аккаунт",
+                                color = OnSurfaceDark,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Подключи ВКонтакте для поиска музыки",
+                                color = OnSurfaceVariantDark,
+                                fontSize = 11.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { onNavigateToVkAuth() },
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A90D9)),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                        ) {
+                            Text("Войти", fontSize = 12.sp)
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             if (uiState.isSearchLoading) {
                 Box(
@@ -88,9 +140,13 @@ fun SearchScreen(musicViewModel: MusicViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = PrimaryPurple)
+                        CircularProgressIndicator(
+                            color = PrimaryPurple,
+                            modifier = Modifier.size(32.dp),
+                            strokeWidth = 3.dp
+                        )
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Ищем треки...", color = OnSurfaceVariantDark)
+                        Text("Ищем треки...", color = OnSurfaceVariantDark, fontSize = 14.sp)
                     }
                 }
             } else if (uiState.searchResults.isEmpty() && uiState.searchQuery.isNotBlank()) {
@@ -102,11 +158,22 @@ fun SearchScreen(musicViewModel: MusicViewModel) {
                         Icon(
                             Icons.Default.MusicNote,
                             null,
-                            tint = OnSurfaceVariantDark,
-                            modifier = Modifier.size(64.dp)
+                            tint = OnSurfaceVariantDark.copy(alpha = 0.3f),
+                            modifier = Modifier.size(72.dp)
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Ничего не найдено", color = OnSurfaceVariantDark, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Ничего не найдено",
+                            color = OnSurfaceVariantDark,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Попробуйте другой запрос",
+                            color = OnSurfaceVariantDark.copy(alpha = 0.5f),
+                            fontSize = 13.sp
+                        )
                     }
                 }
             } else if (uiState.searchResults.isEmpty()) {
@@ -118,14 +185,20 @@ fun SearchScreen(musicViewModel: MusicViewModel) {
                         Icon(
                             Icons.Default.Search,
                             null,
-                            tint = OnSurfaceVariantDark,
-                            modifier = Modifier.size(64.dp)
+                            tint = OnSurfaceVariantDark.copy(alpha = 0.3f),
+                            modifier = Modifier.size(72.dp)
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Начните поиск", color = OnSurfaceVariantDark, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Начните поиск",
+                            color = OnSurfaceVariantDark,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             "Введите название трека или исполнителя",
-                            color = OnSurfaceVariantDark.copy(alpha = 0.6f),
+                            color = OnSurfaceVariantDark.copy(alpha = 0.5f),
                             fontSize = 13.sp
                         )
                     }
@@ -133,15 +206,15 @@ fun SearchScreen(musicViewModel: MusicViewModel) {
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(
-                        bottom = if (playerState.currentTrack != null) 80.dp else 16.dp
+                        bottom = if (playerState.currentTrack != null) 90.dp else 16.dp
                     )
                 ) {
                     item {
                         Text(
                             text = "Найдено: ${uiState.searchResults.size} треков",
                             color = OnSurfaceVariantDark,
-                            fontSize = 13.sp,
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                         )
                     }
                     items(uiState.searchResults) { track ->
