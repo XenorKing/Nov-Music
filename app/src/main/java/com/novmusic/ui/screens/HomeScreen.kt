@@ -204,9 +204,9 @@ fun HomeScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.MusicNote, null, tint = OnSurfaceVariantDark.copy(alpha = 0.4f), modifier = Modifier.size(48.dp))
                             Spacer(modifier = Modifier.height(8.dp))
-                            if (uiState.error != null) {
+                            if (uiState.trendingError != null) {
                                 Text(
-                                    text = uiState.error,
+                                    text = uiState.trendingError!!,
                                     color = OnSurfaceVariantDark.copy(alpha = 0.7f),
                                     fontSize = 12.sp,
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
