@@ -98,7 +98,7 @@ package com.novmusic.ui.screens
   }
 
   @Composable
-  fun HomeScreen(musicViewModel: MusicViewModel) {
+  fun HomeScreen(musicViewModel: MusicViewModel, onOpenPlayer: () -> Unit = {}) {
       val uiState by musicViewModel.uiState.collectAsState()
       val playerState by musicViewModel.playerState.collectAsState()
 
@@ -152,7 +152,7 @@ package com.novmusic.ui.screens
               }
           }
           if (playerState.currentTrack != null) {
-              MiniPlayer(playerState = playerState, onPlayPause = { musicViewModel.togglePlayPause() }, modifier = Modifier.align(Alignment.BottomCenter))
+              MiniPlayer(playerState = playerState, onPlayPause = { musicViewModel.togglePlayPause() }, onOpenPlayer = onOpenPlayer, modifier = Modifier.align(Alignment.BottomCenter))
           }
           uiState.saveMessage?.let { msg ->
               LaunchedEffect(msg) { kotlinx.coroutines.delay(2000); musicViewModel.clearSaveMessage() }
