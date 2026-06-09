@@ -1,6 +1,8 @@
 package com.novmusic.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,30 +60,35 @@ fun ForgotPasswordScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(colors = listOf(BackgroundDark, SurfaceDark)))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF0D0D1A), Color(0xFF151530), Color(0xFF0D0D1A))
+                )
+            )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(56.dp))
 
             IconButton(
                 onClick = onNavigateBack,
-                modifier = Modifier.align(Alignment.Start)
+                modifier = Modifier.align(Alignment.Start).size(40.dp)
             ) {
                 Icon(Icons.Default.ArrowBack, null, tint = OnSurfaceDark)
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             if (successMessage != null) {
+                Spacer(modifier = Modifier.height(40.dp))
                 Icon(
                     imageVector = Icons.Default.MarkEmailRead,
                     contentDescription = null,
-                    tint = PrimaryPurple,
+                    tint = AccentCyan,
                     modifier = Modifier.size(80.dp)
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -98,10 +105,10 @@ fun ForgotPasswordScreen(
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(40.dp))
                 Button(
                     onClick = onNavigateBack,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
                 ) {
@@ -112,30 +119,33 @@ fun ForgotPasswordScreen(
                     text = "Восстановление пароля",
                     color = OnSurfaceDark,
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Start)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Введите email и мы пришлём инструкцию по восстановлению",
+                    text = "Введите email — пришлём инструкцию по сбросу пароля",
                     color = OnSurfaceVariantDark,
                     fontSize = 14.sp,
-                    textAlign = TextAlign.Center
+                    modifier = Modifier.align(Alignment.Start)
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-                AnimatedVisibility(visible = errorMessage != null) {
+                AnimatedVisibility(
+                    visible = errorMessage != null,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A1A2A)),
+                        shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(
                             text = errorMessage ?: "",
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(12.dp),
+                            color = Color(0xFFFF6B6B),
+                            modifier = Modifier.padding(14.dp),
                             fontSize = 13.sp
                         )
                     }
@@ -144,8 +154,10 @@ fun ForgotPasswordScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it; errorMessage = null },
-                    label = { Text("Email") },
-                    leadingIcon = { Icon(Icons.Default.Email, null, tint = PrimaryPurple) },
+                    placeholder = { Text("Email", color = OnSurfaceVariantDark) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Email, null, tint = OnSurfaceVariantDark, modifier = Modifier.size(20.dp))
+                    },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Done
@@ -159,10 +171,11 @@ fun ForgotPasswordScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = PrimaryPurple,
-                        unfocusedBorderColor = Color(0xFF4A4A6A),
+                        unfocusedBorderColor = DividerColor,
                         focusedTextColor = OnSurfaceDark,
                         unfocusedTextColor = OnSurfaceDark,
-                        focusedLabelColor = PrimaryPurple,
+                        focusedContainerColor = SurfaceDark,
+                        unfocusedContainerColor = SurfaceDark,
                         cursorColor = PrimaryPurple
                     )
                 )
@@ -174,13 +187,20 @@ fun ForgotPasswordScreen(
                         focusManager.clearFocus()
                         authViewModel.sendPasswordReset(email)
                     },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryPurple,
+                        disabledContainerColor = SurfaceVariantDark
+                    ),
                     enabled = authEvent !is AuthEvent.Loading
                 ) {
                     if (authEvent is AuthEvent.Loading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
                     } else {
                         Text("Отправить", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     }
