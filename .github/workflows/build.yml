@@ -34,7 +34,6 @@ jobs:
 
       - name: Create local.properties
         run: |
-          echo "SOUNDCLOUD_CLIENT_ID=${{ secrets.SOUNDCLOUD_CLIENT_ID }}" >> local.properties
           echo "VK_APP_ID=${{ secrets.VK_APP_ID }}" >> local.properties
 
       - name: Build Debug APK
@@ -74,7 +73,6 @@ jobs:
 
       - name: Create local.properties
         run: |
-          echo "SOUNDCLOUD_CLIENT_ID=${{ secrets.SOUNDCLOUD_CLIENT_ID }}" >> local.properties
           echo "VK_APP_ID=${{ secrets.VK_APP_ID }}" >> local.properties
 
       - name: Decode Keystore
