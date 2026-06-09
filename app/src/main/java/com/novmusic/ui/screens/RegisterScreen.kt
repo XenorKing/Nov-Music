@@ -1,6 +1,8 @@
 package com.novmusic.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -60,53 +62,64 @@ fun RegisterScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(colors = listOf(BackgroundDark, SurfaceDark)))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF0D0D1A), Color(0xFF151530), Color(0xFF0D0D1A))
+                )
+            )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(56.dp))
 
-            IconButton(
-                onClick = onNavigateToLogin,
-                modifier = Modifier.align(Alignment.Start)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.ArrowBack, null, tint = OnSurfaceDark)
+                IconButton(onClick = onNavigateToLogin, modifier = Modifier.size(40.dp)) {
+                    Icon(Icons.Default.ArrowBack, null, tint = OnSurfaceDark)
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "Создать аккаунт",
                 color = OnSurfaceDark,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
             )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Присоединяйся к novМузыка",
                 color = OnSurfaceVariantDark,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.Start)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            AnimatedVisibility(visible = errorMessage != null) {
+            AnimatedVisibility(
+                visible = errorMessage != null,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF3A1A2A)),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Text(
                         text = errorMessage ?: "",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(12.dp),
+                        color = Color(0xFFFF6B6B),
+                        modifier = Modifier.padding(14.dp),
                         fontSize = 13.sp
                     )
                 }
@@ -114,18 +127,21 @@ fun RegisterScreen(
 
             val fieldColors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PrimaryPurple,
-                unfocusedBorderColor = Color(0xFF4A4A6A),
+                unfocusedBorderColor = DividerColor,
                 focusedTextColor = OnSurfaceDark,
                 unfocusedTextColor = OnSurfaceDark,
-                focusedLabelColor = PrimaryPurple,
+                focusedContainerColor = SurfaceDark,
+                unfocusedContainerColor = SurfaceDark,
                 cursorColor = PrimaryPurple
             )
 
             OutlinedTextField(
                 value = displayName,
                 onValueChange = { displayName = it; errorMessage = null },
-                label = { Text("Имя") },
-                leadingIcon = { Icon(Icons.Default.Person, null, tint = PrimaryPurple) },
+                placeholder = { Text("Имя", color = OnSurfaceVariantDark) },
+                leadingIcon = {
+                    Icon(Icons.Default.Person, null, tint = OnSurfaceVariantDark, modifier = Modifier.size(20.dp))
+                },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -138,8 +154,10 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it; errorMessage = null },
-                label = { Text("Email") },
-                leadingIcon = { Icon(Icons.Default.Email, null, tint = PrimaryPurple) },
+                placeholder = { Text("Email", color = OnSurfaceVariantDark) },
+                leadingIcon = {
+                    Icon(Icons.Default.Email, null, tint = OnSurfaceVariantDark, modifier = Modifier.size(20.dp))
+                },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
@@ -155,14 +173,17 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it; errorMessage = null },
-                label = { Text("Пароль") },
-                leadingIcon = { Icon(Icons.Default.Lock, null, tint = PrimaryPurple) },
+                placeholder = { Text("Пароль", color = OnSurfaceVariantDark) },
+                leadingIcon = {
+                    Icon(Icons.Default.Lock, null, tint = OnSurfaceVariantDark, modifier = Modifier.size(20.dp))
+                },
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = null,
-                            tint = OnSurfaceVariantDark
+                            tint = OnSurfaceVariantDark,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 },
@@ -182,8 +203,10 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it; errorMessage = null },
-                label = { Text("Подтвердите пароль") },
-                leadingIcon = { Icon(Icons.Default.Lock, null, tint = PrimaryPurple) },
+                placeholder = { Text("Подтвердите пароль", color = OnSurfaceVariantDark) },
+                leadingIcon = {
+                    Icon(Icons.Default.Lock, null, tint = OnSurfaceVariantDark, modifier = Modifier.size(20.dp))
+                },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
@@ -218,13 +241,20 @@ fun RegisterScreen(
                     }
                     authViewModel.register(email, password, displayName)
                 },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryPurple,
+                    disabledContainerColor = SurfaceVariantDark
+                ),
                 enabled = authEvent !is AuthEvent.Loading
             ) {
                 if (authEvent is AuthEvent.Loading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
                 } else {
                     Text("Зарегистрироваться", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
@@ -237,8 +267,13 @@ fun RegisterScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Уже есть аккаунт? ", color = OnSurfaceVariantDark, fontSize = 14.sp)
-                TextButton(onClick = onNavigateToLogin) {
-                    Text("Войти", color = PrimaryPurple, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                TextButton(onClick = onNavigateToLogin, contentPadding = PaddingValues(0.dp)) {
+                    Text(
+                        "Войти",
+                        color = PrimaryPurple,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
 
