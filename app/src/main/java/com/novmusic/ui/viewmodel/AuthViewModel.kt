@@ -1,13 +1,13 @@
 package com.novmusic.ui.viewmodel
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.novmusic.BuildConfig
 import com.novmusic.VkCallbackHolder
+import com.novmusic.data.VkTokenStorage
 import com.novmusic.data.model.User
 import com.novmusic.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,7 +32,8 @@ sealed class AuthEvent {
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val vkTokenStorage: VkTokenStorage
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -53,8 +54,9 @@ class AuthViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            VkCallbackHolder.vkTokenFlow.collect { (token, userId) ->
-                signInWithVk(token, userId, "VK User")
+            VkCallbackHolder.vkTokenFlow.collect { (token, userId, userName) ->
+                vkTokenStorage.saveToken(token)
+                signInWithVk(token, userId, userName)
             }
         }
     }
@@ -119,6 +121,7 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signOut() {
+        vkTokenStorage.clear()
         authRepository.signOut()
     }
 
