@@ -38,6 +38,8 @@ import com.novmusic.ui.screens.LoginScreen
 import com.novmusic.ui.screens.RegisterScreen
 import com.novmusic.ui.screens.SavedTracksScreen
 import com.novmusic.ui.screens.SearchScreen
+import com.novmusic.ui.screens.VkAuthWebViewScreen
+import com.novmusic.ui.theme.BackgroundDark
 import com.novmusic.ui.theme.PrimaryPurple
 import com.novmusic.ui.theme.SurfaceDark
 import com.novmusic.ui.viewmodel.AuthState
@@ -48,6 +50,7 @@ object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val FORGOT_PASSWORD = "forgot_password"
+    const val VK_AUTH = "vk_auth"
     const val HOME = "home"
     const val SEARCH = "search"
     const val SAVED = "saved"
@@ -63,8 +66,8 @@ fun NovMusicNavHost(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val showBottomBar = authState is AuthState.Authenticated &&
-            currentRoute in listOf(Routes.HOME, Routes.SEARCH, Routes.SAVED)
+    val mainRoutes = listOf(Routes.HOME, Routes.SEARCH, Routes.SAVED)
+    val showBottomBar = authState is AuthState.Authenticated && currentRoute in mainRoutes
 
     val startDestination = when (authState) {
         is AuthState.Loading -> Routes.LOGIN
@@ -73,6 +76,7 @@ fun NovMusicNavHost(
     }
 
     Scaffold(
+        containerColor = BackgroundDark,
         bottomBar = {
             AnimatedVisibility(
                 visible = showBottomBar,
@@ -106,6 +110,7 @@ fun NovMusicNavHost(
                         authViewModel = authViewModel,
                         onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
                         onNavigateToForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
+                        onNavigateToVkAuth = { navController.navigate(Routes.VK_AUTH) },
                         onNavigateToHome = {
                             navController.navigate(Routes.HOME) {
                                 popUpTo(Routes.LOGIN) { inclusive = true }
@@ -130,14 +135,31 @@ fun NovMusicNavHost(
                         onNavigateBack = { navController.navigateUp() }
                     )
                 }
+                composable(Routes.VK_AUTH) {
+                    VkAuthWebViewScreen(
+                        authUrl = authViewModel.getVkAuthUrl(),
+                        onTokenReceived = { token, userId ->
+                            authViewModel.handleVkTokenReceived(token, userId)
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
+                        },
+                        onBack = { navController.navigateUp() }
+                    )
+                }
                 composable(Routes.HOME) {
                     HomeScreen(
                         musicViewModel = musicViewModel,
-                        authViewModel = authViewModel
+                        authViewModel = authViewModel,
+                        onNavigateToVkAuth = { navController.navigate(Routes.VK_AUTH) }
                     )
                 }
                 composable(Routes.SEARCH) {
-                    SearchScreen(musicViewModel = musicViewModel)
+                    SearchScreen(
+                        musicViewModel = musicViewModel,
+                        authViewModel = authViewModel,
+                        onNavigateToVkAuth = { navController.navigate(Routes.VK_AUTH) }
+                    )
                 }
                 composable(Routes.SAVED) {
                     SavedTracksScreen(musicViewModel = musicViewModel)
@@ -169,9 +191,9 @@ fun NovMusicBottomBar(
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryPurple,
                 selectedTextColor = PrimaryPurple,
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray,
-                indicatorColor = SurfaceDark
+                unselectedIconColor = Color(0xFF5A5A7A),
+                unselectedTextColor = Color(0xFF5A5A7A),
+                indicatorColor = Color(0xFF1E1E40)
             )
         )
         NavigationBarItem(
@@ -187,9 +209,9 @@ fun NovMusicBottomBar(
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryPurple,
                 selectedTextColor = PrimaryPurple,
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray,
-                indicatorColor = SurfaceDark
+                unselectedIconColor = Color(0xFF5A5A7A),
+                unselectedTextColor = Color(0xFF5A5A7A),
+                indicatorColor = Color(0xFF1E1E40)
             )
         )
         NavigationBarItem(
@@ -198,16 +220,16 @@ fun NovMusicBottomBar(
             icon = {
                 Icon(
                     imageVector = if (currentRoute == Routes.SAVED) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                    contentDescription = "Сохранённые"
+                    contentDescription = "Избранное"
                 )
             },
             label = { Text("Избранное") },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryPurple,
                 selectedTextColor = PrimaryPurple,
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray,
-                indicatorColor = SurfaceDark
+                unselectedIconColor = Color(0xFF5A5A7A),
+                unselectedTextColor = Color(0xFF5A5A7A),
+                indicatorColor = Color(0xFF1E1E40)
             )
         )
     }
