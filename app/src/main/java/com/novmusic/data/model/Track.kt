@@ -3,43 +3,46 @@ package com.novmusic.data.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// Deezer API models
+// ---- Jamendo API models ----
+
 @Serializable
-data class DeezerSearchResponse(
-    @SerialName("data") val data: List<DeezerTrack> = emptyList(),
-    @SerialName("total") val total: Int = 0
+data class JamendoSearchResponse(
+    @SerialName("results") val results: List<JamendoTrack> = emptyList(),
+    @SerialName("headers") val headers: JamendoHeaders? = null
 )
 
 @Serializable
-data class DeezerChartsResponse(
-    @SerialName("data") val data: List<DeezerTrack> = emptyList()
+data class JamendoTracksResponse(
+    @SerialName("results") val results: List<JamendoTrack> = emptyList(),
+    @SerialName("headers") val headers: JamendoHeaders? = null
 )
 
 @Serializable
-data class DeezerTrack(
-    @SerialName("id") val id: Long = 0,
-    @SerialName("title") val title: String = "",
-    @SerialName("preview") val preview: String? = null,
+data class JamendoHeaders(
+    @SerialName("status") val status: String = "",
+    @SerialName("code") val code: Int = 0,
+    @SerialName("results_count") val resultsCount: Int = 0
+)
+
+@Serializable
+data class JamendoTrack(
+    @SerialName("id") val id: String = "",
+    @SerialName("name") val name: String = "",
     @SerialName("duration") val duration: Int = 0,
-    @SerialName("artist") val artist: DeezerArtist = DeezerArtist(),
-    @SerialName("album") val album: DeezerAlbum = DeezerAlbum()
+    @SerialName("artist_name") val artistName: String = "",
+    @SerialName("album_name") val albumName: String = "",
+    @SerialName("album_image") val albumImage: String? = null,
+    @SerialName("audio") val audio: String? = null,
+    @SerialName("audiodownload") val audiodownload: String? = null,
+    @SerialName("image") val image: String? = null,
+    @SerialName("shareurl") val shareUrl: String = "",
+    @SerialName("genre") val genre: String? = null,
+    @SerialName("listens") val listens: Long = 0,
+    @SerialName("likes_count") val likesCount: Long = 0
 )
 
-@Serializable
-data class DeezerArtist(
-    @SerialName("id") val id: Long = 0,
-    @SerialName("name") val name: String = ""
-)
+// ---- App domain model ----
 
-@Serializable
-data class DeezerAlbum(
-    @SerialName("id") val id: Long = 0,
-    @SerialName("title") val title: String = "",
-    @SerialName("cover_medium") val coverMedium: String? = null,
-    @SerialName("cover_big") val coverBig: String? = null
-)
-
-// App domain model
 data class Track(
     val id: String,
     val title: String,
@@ -54,18 +57,20 @@ data class Track(
     val isSaved: Boolean = false
 )
 
-fun DeezerTrack.toTrack(): Track = Track(
-    id = id.toString(),
-    title = title,
-    artist = artist.name,
+fun JamendoTrack.toTrack(): Track = Track(
+    id = id,
+    title = name,
+    artist = artistName,
     duration = duration * 1000L,
-    artworkUrl = album.coverBig ?: album.coverMedium,
-    streamUrl = preview,
-    permalinkUrl = "",
-    genre = null,
-    playbackCount = 0,
-    likesCount = 0
+    artworkUrl = albumImage ?: image,
+    streamUrl = audio ?: audiodownload,
+    permalinkUrl = shareUrl,
+    genre = genre,
+    playbackCount = listens,
+    likesCount = likesCount
 )
+
+// ---- Firestore saved track ----
 
 data class SavedTrack(
     val id: String = "",

@@ -3,7 +3,7 @@ package com.novmusic.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.novmusic.data.api.DeezerMusicApi
+import com.novmusic.data.api.JamendoMusicApi
 import com.novmusic.data.model.SavedTrack
 import com.novmusic.data.model.Track
 import com.novmusic.data.model.toSavedTrack
@@ -17,16 +17,16 @@ import javax.inject.Singleton
 
 @Singleton
 class MusicRepository @Inject constructor(
-    private val deezerApi: DeezerMusicApi,
+    private val jamendoApi: JamendoMusicApi,
     private val firestore: FirebaseFirestore,
     private val firebaseAuth: FirebaseAuth
 ) {
 
     suspend fun searchTracks(query: String, offset: Int = 0): Result<List<Track>> {
         return try {
-            val response = deezerApi.searchTracks(query = query, offset = offset)
-            val tracks = response.data
-                .filter { it.preview != null }
+            val response = jamendoApi.searchTracks(search = query, offset = offset)
+            val tracks = response.results
+                .filter { !it.audio.isNullOrBlank() || !it.audiodownload.isNullOrBlank() }
                 .map { it.toTrack() }
             Result.success(tracks)
         } catch (e: Exception) {
@@ -36,9 +36,9 @@ class MusicRepository @Inject constructor(
 
     suspend fun getTrendingTracks(): Result<List<Track>> {
         return try {
-            val response = deezerApi.getTopTracks()
-            val tracks = response.data
-                .filter { it.preview != null }
+            val response = jamendoApi.getTrendingTracks()
+            val tracks = response.results
+                .filter { !it.audio.isNullOrBlank() || !it.audiodownload.isNullOrBlank() }
                 .map { it.toTrack() }
             Result.success(tracks)
         } catch (e: Exception) {

@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.media3.exoplayer.ExoPlayer
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.novmusic.data.api.DeezerMusicApi
+import com.novmusic.data.api.JamendoMusicApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,7 +22,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private const val DEEZER_BASE_URL = "https://api.deezer.com/"
+    // Jamendo public API — free, full MP3 tracks, no user auth required
+    private const val JAMENDO_BASE_URL = "https://api.jamendo.com/v3.0/"
 
     @Provides
     @Singleton
@@ -44,13 +45,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDeezerMusicApi(okHttpClient: OkHttpClient, json: Json): DeezerMusicApi {
+    fun provideJamendoMusicApi(okHttpClient: OkHttpClient, json: Json): JamendoMusicApi {
         return Retrofit.Builder()
-            .baseUrl(DEEZER_BASE_URL)
+            .baseUrl(JAMENDO_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
-            .create(DeezerMusicApi::class.java)
+            .create(JamendoMusicApi::class.java)
     }
 
     @Provides
