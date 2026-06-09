@@ -109,7 +109,7 @@ class AuthViewModel @Inject constructor(
                 "&scope=audio,offline" +
                 "&response_type=token" +
                 "&v=5.131" +
-                "&display=mobile"
+                "&display=page"
     }
 
     fun handleVkTokenReceived(token: String, userId: String) {
