@@ -31,80 +31,116 @@ fun MiniPlayer(
 ) {
     val track = playerState.currentTrack ?: return
 
-    Surface(
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(16.dp),
-        shadowElevation = 8.dp,
-        color = SurfaceVariantDark
+            .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            shadowElevation = 12.dp,
+            color = Color.Transparent
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            ) {
-                if (track.artworkUrl != null) {
-                    AsyncImage(
-                        model = track.artworkUrl,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                    .fillMaxWidth()
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF1E1E45),
+                                Color(0xFF252550)
+                            )
+                        ),
+                        shape = RoundedCornerShape(20.dp)
                     )
-                } else {
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(Brush.linearGradient(listOf(PrimaryPurple, SecondaryPink))),
-                        contentAlignment = Alignment.Center
+                            .size(46.dp)
+                            .clip(RoundedCornerShape(12.dp))
                     ) {
-                        Icon(Icons.Default.MusicNote, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        if (track.artworkUrl != null) {
+                            AsyncImage(
+                                model = track.artworkUrl,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.linearGradient(listOf(PrimaryPurple, AccentCyan.copy(alpha = 0.7f)))
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.MusicNote,
+                                    null,
+                                    tint = Color.White.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
                     }
-                }
-            }
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 10.dp)
-            ) {
-                Text(
-                    text = track.title,
-                    color = OnSurfaceDark,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = track.artist,
-                    color = OnSurfaceVariantDark,
-                    fontSize = 11.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 12.dp)
+                    ) {
+                        Text(
+                            text = track.title,
+                            color = OnSurfaceDark,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = track.artist,
+                            color = OnSurfaceVariantDark,
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
 
-            if (playerState.isLoading) {
-                CircularProgressIndicator(
-                    color = PrimaryPurple,
-                    modifier = Modifier.size(32.dp),
-                    strokeWidth = 2.dp
-                )
-            } else {
-                IconButton(onClick = onPlayPause) {
-                    Icon(
-                        imageVector = if (playerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        tint = PrimaryPurple,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    if (playerState.isLoading) {
+                        CircularProgressIndicator(
+                            color = PrimaryPurple,
+                            modifier = Modifier.size(34.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(PrimaryPurple, RoundedCornerShape(12.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            IconButton(
+                                onClick = onPlayPause,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (playerState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
