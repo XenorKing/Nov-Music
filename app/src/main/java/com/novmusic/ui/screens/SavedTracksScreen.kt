@@ -29,46 +29,63 @@ fun SavedTracksScreen(musicViewModel: MusicViewModel) {
             .background(BackgroundDark)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(52.dp))
 
             Row(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Bookmark, null, tint = PrimaryPurple, modifier = Modifier.size(28.dp))
+                Icon(
+                    Icons.Default.Bookmark,
+                    null,
+                    tint = PrimaryPurple,
+                    modifier = Modifier.size(26.dp)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Избранное",
                     color = OnSurfaceDark,
-                    fontSize = 28.sp,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             if (uiState.isSavedLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = PrimaryPurple)
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = PrimaryPurple,
+                        modifier = Modifier.size(32.dp),
+                        strokeWidth = 3.dp
+                    )
                 }
             } else if (uiState.savedTracks.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             Icons.Default.MusicNote,
                             null,
-                            tint = OnSurfaceVariantDark,
-                            modifier = Modifier.size(64.dp)
+                            tint = OnSurfaceVariantDark.copy(alpha = 0.3f),
+                            modifier = Modifier.size(72.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "Нет сохранённых треков",
                             color = OnSurfaceDark,
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Нажмите ♡ рядом с треком, чтобы сохранить его",
-                            color = OnSurfaceVariantDark,
+                            text = "Нажмите ♡ рядом с треком, чтобы сохранить",
+                            color = OnSurfaceVariantDark.copy(alpha = 0.6f),
                             fontSize = 13.sp
                         )
                     }
@@ -76,15 +93,15 @@ fun SavedTracksScreen(musicViewModel: MusicViewModel) {
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(
-                        bottom = if (playerState.currentTrack != null) 80.dp else 16.dp
+                        bottom = if (playerState.currentTrack != null) 90.dp else 16.dp
                     )
                 ) {
                     item {
                         Text(
                             text = "${uiState.savedTracks.size} треков",
                             color = OnSurfaceVariantDark,
-                            fontSize = 13.sp,
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                         )
                     }
                     items(uiState.savedTracks) { track ->
@@ -116,7 +133,11 @@ fun SavedTracksScreen(musicViewModel: MusicViewModel) {
             Snackbar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = if (playerState.currentTrack != null) 90.dp else 16.dp, start = 16.dp, end = 16.dp),
+                    .padding(
+                        bottom = if (playerState.currentTrack != null) 90.dp else 16.dp,
+                        start = 16.dp,
+                        end = 16.dp
+                    ),
                 containerColor = SurfaceVariantDark,
                 contentColor = OnSurfaceDark
             ) {
