@@ -26,7 +26,8 @@ package com.novmusic.ui.screens
 
   @Composable
   fun SearchScreen(
-      musicViewModel: MusicViewModel
+      musicViewModel: MusicViewModel,
+      onOpenPlayer: () -> Unit = {}
   ) {
       val uiState by musicViewModel.uiState.collectAsState()
       val playerState by musicViewModel.playerState.collectAsState()
@@ -154,11 +155,7 @@ package com.novmusic.ui.screens
           }
 
           if (playerState.currentTrack != null) {
-              MiniPlayer(
-                  playerState = playerState,
-                  onPlayPause = { musicViewModel.togglePlayPause() },
-                  modifier = Modifier.align(Alignment.BottomCenter)
-              )
+              MiniPlayer(playerState = playerState, onPlayPause = { musicViewModel.togglePlayPause() }, onOpenPlayer = onOpenPlayer, modifier = Modifier.align(Alignment.BottomCenter))
           }
       }
   }
