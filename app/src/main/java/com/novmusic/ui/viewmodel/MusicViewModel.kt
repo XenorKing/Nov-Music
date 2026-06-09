@@ -67,11 +67,16 @@ class MusicViewModel @Inject constructor(
 
     fun loadTrendingTracks() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isTrendingLoading = true)
+            _uiState.value = _uiState.value.copy(isTrendingLoading = true, error = null)
             val result = musicRepository.getTrendingTracks()
             _uiState.value = _uiState.value.copy(
                 isTrendingLoading = false,
-                trendingTracks = result.getOrElse { emptyList() }
+                trendingTracks = result.getOrElse { e ->
+                    _uiState.value = _uiState.value.copy(
+                        error = "Не удалось загрузить треки: ${e.message}"
+                    )
+                    emptyList()
+                }
             )
         }
     }
