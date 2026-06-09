@@ -109,7 +109,7 @@ class AuthViewModel @Inject constructor(
         return "https://oauth.vk.com/authorize" +
                 "?client_id=$appId" +
                 "&redirect_uri=$redirectUri" +
-                "&scope=audio,offline" +
+                "&scope=offline" +
                 "&response_type=token" +
                 "&v=5.131" +
                 "&display=mobile"
